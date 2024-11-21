@@ -1,112 +1,267 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanji Interactive Board</title>
     <style>
+        :root {
+            --background: #ffffff;
+            --text: #333333;
+            --kanji-bg: #fff4d4;
+            --info-bg: #fff9e6;
+            --section-border: #e6d5b3;
+        }
+
+        [data-theme="dark"] {
+            --background: #1a1a1a;
+            --text: #ffffff;
+            --kanji-bg: #4d4d2e;
+            --info-bg: #2d2d1a;
+            --section-border: #4d4d2e;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
+            padding: 16px;
+            background-color: var(--background);
+            color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif;
+            transition: background-color 0.3s ease;
         }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 10px;
-        }
-        .kanji {
-            padding: 10px;
-            text-align: center;
-            font-size: 24px;
-            background-color: #f9f9f9;
+
+        .theme-toggle {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            background: var(--kanji-bg);
+            color: var(--text);
             cursor: pointer;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            transition: background-color 0.3s, transform 0.2s;
+            z-index: 100;
         }
-        .kanji:hover {
-            background-color: #eaeaea;
+
+        .kanji-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: 8px;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .kanji-item {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background-color: var(--kanji-bg);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .kanji-item:hover {
             transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-        .tooltip {
-            display: none;
-            position: absolute;
-            background: #fff;
-            border: 1px solid #ccc;
+
+        .kanji-info {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--info-bg);
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .kanji-info.active {
+            transform: translateY(0);
+        }
+
+        .kanji-info h2 {
+            margin-top: 0;
+            font-size: 48px;
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--section-border);
+        }
+
+        .info-section {
+            margin: 15px 0;
             padding: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            z-index: 10;
+            border-bottom: 1px solid var(--section-border);
+        }
+
+        .info-section h3 {
+            margin: 0 0 10px 0;
+            color: var(--text);
+            font-size: 18px;
+        }
+
+        .reading-type {
+            display: inline-block;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        .close-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            border: none;
+            background: none;
+            color: var(--text);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .kanji-grid {
+                grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+                gap: 6px;
+                padding: 10px;
+            }
+
+            .kanji-item {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Kanji Interactive Board</h1>
-    <p>Click on a Kanji to see its meaning.</p>
-    <div class="grid" id="kanjiGrid"></div>
-    <div id="tooltip" class="tooltip"></div>
+    <button class="theme-toggle" onclick="toggleTheme()">🌓 Tema</button>
+    
+    <div class="kanji-grid">
+        <div class="kanji-item" data-kanji="一" data-meanings="uno, primero, unidad" data-onyomi="イチ (ichi)" data-kunyomi="ひと (hito)">一</div>
+        <div class="kanji-item" data-kanji="人" data-meanings="persona, ser humano, gente" data-onyomi="ジン (jin), ニン (nin)" data-kunyomi="ひと (hito)">人</div>
+        <div class="kanji-item" data-kanji="十" data-meanings="diez" data-onyomi="ジュウ (juu)" data-kunyomi="とお (too)">十</div>
+        <div class="kanji-item" data-kanji="二" data-meanings="dos" data-onyomi="ニ (ni)" data-kunyomi="ふた (futa)">二</div>
+        <div class="kanji-item" data-kanji="九" data-meanings="nueve" data-onyomi="キュウ (kyuu), ク (ku)" data-kunyomi="ここの (kokono)">九</div>
+        <div class="kanji-item" data-kanji="入" data-meanings="entrar, insertar" data-onyomi="ニュウ (nyuu)" data-kunyomi="はい (hai), い (i)">入</div>
+        <div class="kanji-item" data-kanji="八" data-meanings="ocho" data-onyomi="ハチ (hachi)" data-kunyomi="やつ (yatsu)">八</div>
+        <div class="kanji-item" data-kanji="七" data-meanings="siete" data-onyomi="シチ (shichi)" data-kunyomi="なな (nana)">七</div>
+        <div class="kanji-item" data-kanji="川" data-meanings="río, corriente" data-onyomi="セン (sen)" data-kunyomi="かわ (kawa)">川</div>
+        <div class="kanji-item" data-kanji="千" data-meanings="mil" data-onyomi="セン (sen)" data-kunyomi="ち (chi)">千</div>
+        <div class="kanji-item" data-kanji="口" data-meanings="boca, entrada" data-onyomi="コウ (kou), ク (ku)" data-kunyomi="くち (kuchi)">口</div>
+        <div class="kanji-item" data-kanji="土" data-meanings="tierra, suelo" data-onyomi="ド (do), ト (to)" data-kunyomi="つち (tsuchi)">土</div>
+        <div class="kanji-item" data-kanji="万" data-meanings="diez mil" data-onyomi="マン (man), バン (ban)" data-kunyomi="">万</div>
+        <div class="kanji-item" data-kanji="日" data-meanings="día, sol" data-onyomi="ニチ (nichi), ジツ (jitsu)" data-kunyomi="ひ (hi)">日</div>
+        <div class="kanji-item" data-kanji="中" data-meanings="centro, dentro" data-onyomi="チュウ (chuu)" data-kunyomi="なか (naka)">中</div>
+        <div class="kanji-item" data-kanji="月" data-meanings="luna, mes" data-onyomi="ゲツ (getsu), ガツ (gatsu)" data-kunyomi="つき (tsuki)">月</div>
+        <div class="kanji-item" data-kanji="少" data-meanings="poco" data-onyomi="ショウ (shou)" data-kunyomi="すこ (suko), すく (suku)">少</div>
+        <div class="kanji-item" data-kanji="木" data-meanings="árbol, madera" data-onyomi="モク (moku), ボク (boku)" data-kunyomi="き (ki)">木</div>
+        <div class="kanji-item" data-kanji="天" data-meanings="cielo" data-onyomi="テン (ten)" data-kunyomi="あま (ama)">天</div>
+        <div class="kanji-item" data-kanji="火" data-meanings="fuego" data-onyomi="カ (ka)" data-kunyomi="ひ (hi)">火</div>
+        <div class="kanji-item" data-kanji="友" data-meanings="amigo" data-onyomi="ユウ (yuu)" data-kunyomi="とも (tomo)">友</div>
+        <div class="kanji-item" data-kanji="父" data-meanings="padre" data-onyomi="フ (fu)" data-kunyomi="ちち (chichi), とう (tou)">父</div>
+        <div class="kanji-item" data-kanji="本" data-meanings="libro, origen" data-onyomi="ホン (hon)" data-kunyomi="もと (moto)">本</div>
+        <div class="kanji-item" data-kanji="出" data-meanings="salir" data-onyomi="シュツ (shutsu)" data-kunyomi="で (de), だ (da)">出</div>
+        <div class="kanji-item" data-kanji="古" data-meanings="viejo, antiguo" data-onyomi="コ (ko)" data-kunyomi="ふる (furu)">古</div>
+        <div class="kanji-item" data-kanji="母" data-meanings="madre" data-onyomi="ボ (bo)" data-kunyomi="はは (haha), かあ (kaa)">母</div>
+        <div class="kanji-item" data-kanji="左" data-meanings="izquierda" data-onyomi="サ (sa)" data-kunyomi="ひだり (hidari)">左</div>
+        <div class="kanji-item" data-kanji="右" data-meanings="derecha" data-onyomi="ウ (u), ユウ (yuu)" data-kunyomi="みぎ (migi)">右</div>
+        <div class="kanji-item" data-kanji="会" data-meanings="reunión, encuentro" data-onyomi="カイ (kai), エ (e)" data-kunyomi="あ (a)">会</div>
+        <div class="kanji-item" data-kanji="年" data-meanings="año" data-onyomi="ネン (nen)" data-kunyomi="とし (toshi)">年</div>
+        <div class="kanji-item" data-kanji="行" data-meanings="ir, realizar" data-onyomi="コウ (kou), ギョウ (gyou)" data-kunyomi="い (i), おこな (okona)">行</div>
+        <div class="kanji-item" data-kanji="気" data-meanings="espíritu, energía" data-onyomi="キ (ki), ケ (ke)" data-kunyomi="">気</div>
+        <div class="kanji-item" data-kanji="耳" data-meanings="oreja, oído" data-onyomi="ジ (ji)" data-kunyomi="みみ (mimi)">耳</div>
+        <div class="kanji-item" data-kanji="社" data-meanings="empresa, santuario" data-onyomi="シャ (sha)" data-kunyomi="やしろ (yashiro)">社</div>
+        <div class="kanji-item" data-kanji="見" data-meanings="ver, mirar" data-onyomi="ケン (ken)" data-kunyomi="み (mi)">見</div>
+        <div class="kanji-item" data-kanji="言" data-meanings="decir, palabra" data-onyomi="ゲン (gen), ゴン (gon)" data-kunyomi="い (i), こと (koto)">言</div>
+        <div class="kanji-item" data-kanji="来" data-meanings="venir, próximo" data-onyomi="ライ (rai)" data-kunyomi="く (ku), きた (kita)">来</div>
+        <div class="kanji-item" data-kanji="男" data-meanings="hombre, masculino" data-onyomi="ダン (dan), ナン (nan)" data-kunyomi="おとこ (otoko)">男</div>
+        <div class="kanji-item" data-kanji="車" data-meanings="carro, vehículo" data-onyomi="シャ (sha)" data-kunyomi="くるま (kuruma)">車</div>
+        <div class="kanji-item" data-kanji="何" data-meanings="qué" data-onyomi="カ (ka)" data-kunyomi="なに (nani), なん (nan)">何</div>
+        <div class="kanji-item" data-kanji="店" data-meanings="tienda" data-onyomi="テン (ten)" data-kunyomi="みせ (mise)">店</div>
+        <div class="kanji-item" data-kanji="雨" data-meanings="lluvia" data-onyomi="ウ (u)" data-kunyomi="あめ (ame)">雨</div>
+        <div class="kanji-item" data-kanji="後" data-meanings="después, detrás" data-onyomi="ゴ (go), コウ (kou)" data-kunyomi="のち (nochi), うし (ushi)">後</div>
+        <div class="kanji-item" data-kanji="前" data-meanings="antes, delante" data-onyomi="ゼン (zen)" data-kunyomi="まえ (mae)">前</div>
+        <div class="kanji-item" data-kanji="食" data-meanings="comer, comida" data-onyomi="ショク (shoku), ジキ (jiki)" data-kunyomi="た (ta), く (ku)">食</div>
+        <div class="kanji-item" data-kanji="南" data-meanings="sur" data-onyomi="ナン (nan)" data-kunyomi="みなみ (minami)">南</div>
+        <div class="kanji-item" data-kanji="時" data-meanings="tiempo, hora" data-onyomi="ジ (ji)" data-kunyomi="とき (toki)">時</div>
+        <div class="kanji-item" data-kanji="高" data-meanings="alto, costoso" data-onyomi="コウ (kou)" data-kunyomi="たか (taka)">高</div>
+        <div class="kanji-item" data-kanji="新" data-meanings="nuevo" data-onyomi="シン (shin)" data-kunyomi="あたら (atara)">新</div>
+        <div class="kanji-item" data-kanji="話" data-meanings="hablar, historia" data-onyomi="ワ (wa)" data-kunyomi="はな (hana)">話</div>
+        <div class="kanji-item" data-kanji="電" data-meanings="electricidad" data-onyomi="デン (den)" data-kunyomi="">電</div>
+        <div class="kanji-item" data-kanji="魚" data-meanings="pez, pescado" data-onyomi="ギョ (gyo)" data-kunyomi="さかな (sakana)">魚</div>
+        <div class="kanji-item" data-kanji="間" data-meanings="intervalo, entre" data-onyomi="カン (kan), ケン (ken)" data-kunyomi="あいだ (aida), ま (ma)">間</div>
+        <div class="kanji-item" data-kanji="道" data-meanings="camino, vía" data-onyomi="ドウ (dou)" data-kunyomi="みち (michi)">道</div>
+        <div class="kanji-item" data-kanji="買" data-meanings="comprar" data-onyomi="バイ (bai)" data-kunyomi="か (ka)">買</div>
+        <div class="kanji-item" data-kanji="飲" data-meanings="beber" data-onyomi="イン (in)" data-kunyomi="の (no)">飲</div>
+        <div class="kanji-item" data-kanji="駅" data-meanings="estación" data-onyomi="エキ (eki)" data-kunyomi="">駅</div>
+        <div class="kanji-item" data-kanji="読" data-meanings="leer" data-onyomi="ドク (doku)" data-kunyomi="よ (yo)">読</div>
+        <div class="kanji-item" data-kanji="書" data-meanings="escribir" data-onyomi="ショ (sho)" data-kunyomi="か (ka)">書</div>
+        <div class="kanji-item" data-kanji="学" data-meanings="aprender, estudiar" data-onyomi="ガク (gaku)" data-kunyomi="まな (mana)">学</div>
+        <div class="kanji-item" data-kanji="校" data-meanings="escuela" data-onyomi="コウ (kou)" data-kunyomi="">校</div>
+        <div class="kanji-item" data-kanji="週" data-meanings="semana" data-onyomi="シュウ (shuu)" data-kunyomi="">週</div>
+        <div class="kanji-item" data-kanji="長" data-meanings="largo, líder" data-onyomi="チョウ (chou)" data-kunyomi="なが (naga)">長</div>
+        <div class="kanji-item" data-kanji="花" data-meanings="flor" data-onyomi="カ (ka), ケ (ke)" data-kunyomi="はな (hana)">花</div>
+    </div>
+
+    <div class="kanji-info">
+        <button class="close-info" onclick="closeInfo()">×</button>
+        <h2></h2>
+        <div class="info-section">
+            <h3>Significados:</h3>
+            <p class="meanings"></p>
+        </div>
+        <div class="info-section">
+            <h3>Lecturas:</h3>
+            <div class="readings">
+                <p><span class="reading-type">音読み (On'yomi):</span> <span class="onyomi"></span></p>
+                <p><span class="reading-type">訓読み (Kun'yomi):</span> <span class="kunyomi"></span></p>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Kanji data
-        const kanjis = [
-            { kanji: "一", meaning: "uno" },
-            { kanji: "人", meaning: "persona" },
-            { kanji: "二", meaning: "dos" },
-            { kanji: "九", meaning: "nueve" },
-            { kanji: "入", meaning: "entrar" },
-            { kanji: "八", meaning: "ocho" },
-            { kanji: "七", meaning: "siete" },
-            { kanji: "三", meaning: "tres" },
-            { kanji: "上", meaning: "arriba" },
-            { kanji: "子", meaning: "niño" },
-            { kanji: "下", meaning: "abajo" },
-            { kanji: "小", meaning: "pequeño" },
-            { kanji: "山", meaning: "montaña" },
-            { kanji: "女", meaning: "mujer" },
-            { kanji: "川", meaning: "río" },
-            { kanji: "千", meaning: "mil" },
-            { kanji: "口", meaning: "boca" },
-            { kanji: "土", meaning: "tierra" },
-            { kanji: "万", meaning: "diez mil" },
-            { kanji: "日", meaning: "día, sol" },
-            { kanji: "中", meaning: "centro" },
-            { kanji: "月", meaning: "luna, mes" },
-            { kanji: "火", meaning: "fuego" },
-            { kanji: "友", meaning: "amigo" },
-            { kanji: "父", meaning: "padre" },
-            { kanji: "本", meaning: "libro" },
-            { kanji: "出", meaning: "salir" },
-            { kanji: "生", meaning: "vida" },
-            { kanji: "外", meaning: "afuera" },
-            { kanji: "北", meaning: "norte" },
-            { kanji: "木", meaning: "árbol" },
-            { kanji: "来", meaning: "venir, próximo" },
-            { kanji: "車", meaning: "coche" },
-            { kanji: "時", meaning: "tiempo, hora" },
-            { kanji: "話", meaning: "hablar" },
-            { kanji: "駅", meaning: "estación" }
-        ];
+        const kanjiInfo = document.querySelector('.kanji-info');
+        const kanjiTitle = kanjiInfo.querySelector('h2');
+        const kanjiMeanings = kanjiInfo.querySelector('.meanings');
+        const kanjiOnyomi = kanjiInfo.querySelector('.onyomi');
+        const kanjiKunyomi = kanjiInfo.querySelector('.kunyomi');
 
-        // Generate the Kanji grid
-        const grid = document.getElementById('kanjiGrid');
-        kanjis.forEach(kanji => {
-            const kanjiDiv = document.createElement('div');
-            kanjiDiv.className = 'kanji';
-            kanjiDiv.textContent = kanji.kanji;
-            kanjiDiv.addEventListener('click', (event) => showTooltip(event, kanji.meaning));
-            grid.appendChild(kanjiDiv);
+        document.querySelectorAll('.kanji-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const kanji = item.dataset.kanji;
+                const meanings = item.dataset.meanings;
+                const onyomi = item.dataset.onyomi;
+                const kunyomi = item.dataset.kunyomi;
+
+                kanjiTitle.textContent = kanji;
+                kanjiMeanings.textContent = meanings;
+                kanjiOnyomi.textContent = onyomi || "—";
+                kanjiKunyomi.textContent = kunyomi || "—";
+                kanjiInfo.classList.add('active');
+            });
         });
 
-        // Tooltip logic
-        const tooltip = document.getElementById('tooltip');
-        function showTooltip(event, meaning) {
-            tooltip.style.display = 'block';
-            tooltip.style.left = `${event.pageX + 10}px`;
-            tooltip.style.top = `${event.pageY + 10}px`;
-            tooltip.innerHTML = meaning;
+        function closeInfo() {
+            kanjiInfo.classList.remove('active');
         }
-        document.body.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('kanji')) {
-                tooltip.style.display = 'none';
+
+        function toggleTheme() {
+            document.body.setAttribute('data-theme', 
+                document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+            );
+        }
+
+        // Cerrar info al tocar fuera
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.kanji-item') && 
+                !e.target.closest('.kanji-info') && 
+                kanjiInfo.classList.contains('active')) {
+                closeInfo();
             }
         });
     </script>
