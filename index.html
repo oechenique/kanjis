@@ -30,6 +30,23 @@
             transition: background-color 0.3s ease;
         }
 
+        /* Estilo para tema claro */
+        [data-theme='light'] body {
+            background-image: url("data\gastonechenique_A_minimalist_light_pink_ffffff_background_wit_6b26927a-3ba4-42a4-834a-e57dbb458f6a_1.png");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        /* Media query para dispositivos móviles */
+        @media screen and (max-width: 768px) {
+            [data-theme='light'] body {
+                background-size: contain;
+                background-position: top center;
+            }
+        }
+
         .theme-toggle {
             position: fixed;
             top: 16px;
@@ -42,7 +59,6 @@
             cursor: pointer;
             z-index: 100;
         }
-
         .kanji-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
